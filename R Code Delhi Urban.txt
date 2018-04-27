@@ -1,0 +1,223 @@
+#Download the Software
+#visit: http://www.rstudio.com/products/rstudio/download/
+
+#Install Packages
+#Create Directory
+setwd( "D:/Bappa/PGPBA/Data/")
+#Import file
+Class<-read.csv(file.choose(), header=T)
+
+#attach(DE2)
+attach(Class)
+
+#Install Packages
+#Install 'MASS'
+library(abc)
+library(epiR)
+library(het.test)
+library(car)
+library(lmtest)
+library(sandwich)
+library(caret)
+library(e1071)
+library(nortest)
+library(MASS)
+#Reading and Verifying the Data
+dim(Class)
+#Rename Create variables
+poverty<-ifelse(MPCE<pov_line,1,0)
+Hindu<-ifelse(Religion=="Hindu",1,0)
+Islam<-ifelse(Religion=="Islam",1,0)
+ST<-ifelse(Social_Group=="ST",1,0)
+SC<-ifelse(Social_Group=="SC",1,0)
+OBC<-ifelse(Social_Group=="OBC",1,0)
+Gen<-ifelse(Social_Group=="Others",1,0)
+LPG<-ifelse(Cook=="LPG",1,0)
+Kerosene<-ifelse(Cook=="Kerosene",1,0)
+Salary<-ifelse(Salary_income=="1",1,0)
+logMPC<-log(MPCE)
+
+
+#Summary Stats
+summary(HH_Size)
+summary(poverty)
+summary(MPCE)
+summary(logMPC)
+#Descriptive Statistics
+#Mean, Median, Variance, Standard Deviation, Skewness, Kurtosis
+mean(poverty)
+median(HH_Size)
+mean(HH_Size)
+
+var(HH_Size)
+sd(HH_Size)
+mean(MPCE)
+sd(MPCE)
+mean(logMPC)
+sd(logMPC)
+skewness(logMPC)
+kurtosis(logMPC)
+#Graphical Representations
+
+#pie
+count<-table(Religion)
+count
+pie(count, main="Religion")
+#histogram
+hist(HH_Size,freq=F)
+lines(density(HH_Size))
+hist(MPCE)
+hist(logMPC)
+
+plot(HH_Size,logMPC, xlab="Size",ylab="MPC")
+
+cor(HH_Size,logMPC)
+
+
+
+#####calculate Probability distributions
+
+##Binomial
+#Point Probability
+dbinom(4,size=20,prob=0.13)
+#Cumulative probability
+pbinom(4,size=20,prob=0.13)
+
+##Poisson
+#Point Probability
+dpois(8,lambda=4)
+#Cumulative Probability
+ppois(8,lambda=4)
+#Normal
+pnorm(9,mean=7.775,sd=0.64,lower.tail=F)
+pnorm(9,mean=7.775,sd=0.64,lower.tail=T)
+
+###Normality Tests
+#Tests for Normality
+#Create Normal Distn
+y<-rnorm(1000,0,1)
+#Visual: Histograms
+
+hist(y)
+
+qqnorm(y)
+qqline(y, col="red")
+
+
+#Shapiro Test
+shapiro.test(y)
+#Anderson Darling Test
+ad.test(y)
+#Kolmogoroc Smirnoff test
+ks.test(y,pnorm,mean=0,sd=1)
+#Shapiro Test
+shapiro.test(MPCE)
+#Anderson Darling Test
+ad.test(MPCE)
+#Kolmogoroc Smirnoff test
+ks.test(MPCE,pnorm,mean=2961.274,sd=2378.087)
+
+#Shapiro Test
+shapiro.test(logMPC)
+#Anderson Darling Test
+ad.test(logMPC)
+#Kolmogoroc Smirnoff test
+ks.test(logMPC,pnorm,mean=7.775,sd=0.64)
+
+###t-Distribution:
+
+#Find the 2.5th and 97.5th percentiles of the Student t distribution with 10 degrees of freedom.
+qt(c(.025, .975), df=10)
+
+###Chi Square
+
+#Find the 95th percentile of the Chi-Squared distribution with 10 degrees of freedom.
+qchisq(.95, df=10) 
+####F Dtsribution
+
+
+#Find the 95th percentile of the F distribution with (5, 2) degrees of freedom
+qf(.95, df1=5, df2=2) 
+###General rule: dpois, dbinom etc for point/density,,,,ppois, pbinom for cumulative
+
+
+####Hypothesis Test
+# For n>30 and population variance known: Apply z test as follows
+#say (mu=7.5) and pop sd=0.66, Null: xbar(meanlogMPC)> mu; n=100
+#test stat
+
+(mean(logMPC)-7.5)/(0.66/sqrt(10))
+pnorm(1.319)
+
+
+
+#One Sample Mean (using t test)
+#One sample two tail
+t.test(logMPC,mu=8)
+#One sample upper tail
+t.test(logMPC,mu=7, alternative="greater")
+#Two samples mean
+
+#T.test 2 sample 2 sided
+t.test(HH_Size~poverty,mu=0,alt="two.sided",conf=0.95,var.eq=F,paired=F)
+#T.test 2 sample 1 sided
+t.test(HH_Size~poverty,mu=0,alt="less",conf=0.95,var.eq=F,paired=F)
+x1<- rnorm(50, mean = 0, sd = 2)
+x2<-rnorm(100,mean=1,sd=2)
+n<-40
+
+
+
+
+
+
+#Two samples Variance
+
+var.test(x1, x2, ratio = 1, 
+         alternative = c("two.sided"))
+
+####ANOVA
+#1 way ANOVA
+boxplot(logMPC~Social_Group)
+aov.mpc<-aov(logMPC~Social_Group)
+summary(aov.mpc)
+tk<-TukeyHSD(aov.mpc)
+tk
+plot(tk)
+
+#####Regression
+#define some more useful variables
+
+#define global
+Y<-cbind(poverty)
+Assets<-cbind(bedstead,almirah ,chair,  radio,  tv,  fan,  AC,	stove,	fridge, cycle, car)
+Demography<- cbind(Hindu, Islam, SC, ST, OBC, HH_Size)
+Access<- cbind(LPG,electricity)
+
+
+#Simple Linear Regression
+
+plot(logMPC~HH_Size)
+#run the OLS
+olsreg<-lm(logMPC~HH_Size, data=DE2)
+#Output
+summary(olsreg)
+
+#Best Fit Line
+abline(olsreg)
+
+
+#Multiple Linear Regression
+
+olsreg1<-lm(logMPC~Assets+ Demography+ Access)
+summary(olsreg1)
+plot(olsreg1)
+
+#Saving the Work
+
+#Further Help: Visit http://www.r-tutor.com
+#A good Starting Book: Mark Gardener, "Beginning R: The Statistical Programming Language", Wiley India Pvt. Ltd, INR 649
+# Some useful Websites
+#For background as well as commands: Visit yout tube videos:
+#Basics of R (videos by Ed Boone, Phil Chan)
+# Econometrics Academy
